@@ -1,6 +1,8 @@
 from sudoku_alg import valid, solve, find_empty
 from copy import deepcopy
 from Button import Button
+import numpy as np
+from dokusan import generators
 import pygame
 import time
 import random
@@ -15,16 +17,10 @@ def generate():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 exit()
-        board = [[0 for i in range(9)] for j in range (9)]
         # puts one random number, then solves the board to generate a board
-        for i in range(9):
-            for j in range(9):
-                if random.randint(1, 10) >= 5:
-                    board[i][j] = random.randint(1, 9)  #plug in random number at random spot
-                    if valid(board, (i, j), board[i][j]):
-                        continue
-                    else:
-                        board[i][j] = 0
+            arr = np.array (list(str(generators.random_sudoku(avg_rank=350))))
+            board  = arr.reshape((9, 9))
+            board = board.astype(int).tolist()
         partialBoard = deepcopy(board) #copies board without being modified after solve is called
         if solve(board):
             return partialBoard
@@ -111,7 +107,6 @@ class Board:
                 self.tiles[empty[0]][empty[1]].correct = True
                 pygame.time.delay(63) #show tiles at a slower rate
                 self.redraw({}, wrong, time)
-
                 if self.visualSolve(wrong, time):
                     return True
 
