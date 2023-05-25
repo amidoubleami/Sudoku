@@ -7,19 +7,29 @@ import pygame
 import time
 import random
 import os
+from enum import Enum
 pygame.init()
 SCREEN = pygame.display.set_mode((1280, 720))
 pygame.display.set_caption("Menu")
 
 BG = pygame.image.load("assets/Background.png")
-def generate():
+def generate(level):
     '''Randomly generates a Sudoku grid/board'''
     while True:  #return will interrupt the loop
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 exit()
         # puts one random number, then solves the board to generate a board
-            arr = np.array (list(str(generators.random_sudoku(avg_rank=350))))
+            rank = 0
+            if level == Level.EASY:
+                rank = 150
+            if level == Level.MEDIUM:
+                rank = 300
+            if level == Level.HARD:
+                rank = 450
+                
+            print(rank)
+            arr = np.array (list(str(generators.random_sudoku(avg_rank=rank))))
             board  = arr.reshape((9, 9))
             board = board.astype(int).tolist()
         partialBoard = deepcopy(board) #copies board without being modified after solve is called
@@ -27,12 +37,13 @@ def generate():
             return partialBoard
 class Board:
     '''A sudoku board made out of Tiles'''
-    def __init__(self, window):
-        self.board = generate()
+    def __init__(self, window, level):
+        self.board = generate(level)
         self.solvedBoard = deepcopy(self.board)
         solve(self.solvedBoard)
         self.tiles = [[Tile(self.board[i][j], window, i*60, j*60) for j in range(9)] for i in range(9)]
         self.window = window
+        self.level = level
 
     def draw_board(self):
         '''Fills the board with Tiles and renders their values'''
@@ -165,7 +176,7 @@ class Tile:
 def get_font(size): # Returns Press-Start-2P in the desired size
     return pygame.font.Font("assets/font.ttf", size)
 
-def play():
+def play(level):
     screen = pygame.display.set_mode((1020, 590))
     screen.fill((255, 255, 255))  #color
     #loading screen when generating grid
@@ -180,7 +191,7 @@ def play():
 
     #initiliaze values and variables
     wrong = 0
-    board = Board(screen)
+    board = Board(screen, level)
     selected = -1,-1 #NoneType error when selected = None, easier to just format as a tuple whose value will never be used
     keyDict = {}
     running = True
@@ -335,13 +346,18 @@ def main_menu():
                 pygame.quit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if EASY_BUTTON.checkForInput(MENU_MOUSE_POS):
-                    play()
+                    play(Level.EASY)
                 if MEDIUM_BUTTON.checkForInput(MENU_MOUSE_POS):
-                    play()
+                    play(Level.MEDIUM)
                 if HARD_BUTTON.checkForInput(MENU_MOUSE_POS):
-                    play()
+                    play(Level.HARD)
 
         pygame.display.update()
+
+class Level(Enum):
+    EASY = 1
+    MEDIUM = 2
+    HARD = 3
 
 main_menu()
 pygame.quit()
