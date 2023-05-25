@@ -18,11 +18,12 @@ def generate(level):
     while True:  #return will interrupt the loop
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                print('qqq')
                 exit()
         # puts one random number, then solves the board to generate a board
             rank = 0
             if level == Level.EASY:
-                rank = 150
+                rank = 10
             if level == Level.MEDIUM:
                 rank = 300
             if level == Level.HARD:
@@ -62,6 +63,8 @@ class Board:
         #bottom-most line
         pygame.draw.line(self.window, (0, 0, 0), (0, ((i+1) // 3) * 180), (540, ((i+1) // 3) * 180), 4)
 
+
+
     def deselect(self, tile):
         '''Deselects every tile except the one currently clicked'''
         for i in range(9):
@@ -69,7 +72,7 @@ class Board:
                 if self.tiles[i][j] != tile:
                     self.tiles[i][j].selected = False
 
-    def redraw(self, keys, wrong, time,ltime):
+    def redraw(self, keys, wrong, time,ltime, status):
         '''Redraws board with highlighted tiles'''
         self.window.fill((255,255,255))
         self.draw_board()
@@ -104,12 +107,17 @@ class Board:
         font = pygame.font.SysFont('Bahnschrift', 30)
         text = font.render("Least Time Taken: {}".format(ltime), True, (0, 0, 0))
         self.window.blit(text, (20, 542))
+
+        font = pygame.font.SysFont('Bahnschrift', 30)
+        text = font.render(status, True, (255, 0, 0))
+        self.window.blit(text, (700, 50))
         pygame.display.flip()
 
     def visualSolve(self, wrong, time):
         '''Showcases how the board is solved via backtracking'''
         for event in pygame.event.get(): #so that touching anything doesn't freeze the screen
             if event.type == pygame.QUIT:
+                print('q')
                 exit()
 
         empty = find_empty(self.board)
@@ -197,6 +205,7 @@ def play(level):
     running = True
     startTime = time.time()
     least_time = 0
+    status = 'Youre doing good ;)'
     if os.path.exists('least_time.txt'):
         with open('least_time', 'r') as file:
             least_time = int(file.read())
@@ -205,11 +214,15 @@ def play(level):
     while running:
         elapsed = time.time() - startTime
         passedTime = time.strftime("%H:%M:%S", time.gmtime(elapsed))
+
         if board.board == board.solvedBoard: #user has solved the board
-            if passedTime < least_time:
-                least_time = passedTime
-                with open('least_time.txt', 'w') as file:
-                    file.write(str(least_time))
+            print('solved!')
+            status = 'Great! Youre cool!'
+            #if passedTime < least_time:
+                #least_time = passedTime
+                #with open('least_time.txt', 'w') as file:
+                    #file.write(str(least_time))
+            
             pygame.display.flip()
             for i in range(9):
                 for j in range(9):
@@ -218,6 +231,7 @@ def play(level):
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                print('exit')
                 exit() #so that it doesnt go to the outer run loop
 
             elif event.type == pygame.MOUSEBUTTONUP: #allow clicks only while the board hasn't been solved
@@ -263,9 +277,13 @@ def play(level):
                             del keyDict[selected]
 
                     elif event.key == pygame.K_RETURN:
+                        print('return')
                         if selected in keyDict:
                             if keyDict[selected] != board.solvedBoard[selected[1]][selected[0]]: #clear tile when incorrect value is inputted
                                 wrong += 1
+                                if wrong == 3:
+                                    status = 'Youre fooled!'
+                                    running = False
                                 board.tiles[selected[1]][selected[0]].value = 0
                                 del keyDict[selected]
                                 break
@@ -288,7 +306,7 @@ def play(level):
                             board.tiles[i][j].correct = False
                             board.tiles[i][j].incorrect = False #reset tiles
                     running = False
-        board.redraw(keyDict, wrong, passedTime,least_time)
+        board.redraw(keyDict, wrong, passedTime,least_time, status)
     while True: #another running loop so that the program ONLY closes when user closes program
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -299,10 +317,6 @@ def options():
         OPTIONS_MOUSE_POS = pygame.mouse.get_pos()
 
         SCREEN.fill("white")
-
-        OPTIONS_TEXT = get_font(45).render("This is the OPTIONS screen.", True, "Black")
-        OPTIONS_RECT = OPTIONS_TEXT.get_rect(center=(640, 260))
-        SCREEN.blit(OPTIONS_TEXT, OPTIONS_RECT)
 
         OPTIONS_BACK = Button(image=None, pos=(640, 460), 
                             text_input="BACK", font=get_font(75), base_color="Black", hovering_color="Green")
@@ -351,6 +365,8 @@ def main_menu():
                     play(Level.MEDIUM)
                 if HARD_BUTTON.checkForInput(MENU_MOUSE_POS):
                     play(Level.HARD)
+
+                pygame.quit()
 
         pygame.display.update()
 
