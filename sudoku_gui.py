@@ -104,6 +104,7 @@ class Board:
         text = font.render(str(time), True, (0, 0, 0))
         self.window.blit(text, (388, 542))
 
+
         font = pygame.font.SysFont('Bahnschrift', 30)
         text = font.render("Least Time Taken: {}".format(ltime), True, (0, 0, 0))
         self.window.blit(text, (20, 542))
@@ -204,24 +205,28 @@ def play(level):
     keyDict = {}
     running = True
     startTime = time.time()
-    least_time = 0
+    least_time = ''
     status = 'Youre doing good ;)'
     if os.path.exists('least_time.txt'):
-        with open('least_time', 'r') as file:
-            least_time = int(file.read())
+        with open('least_time.txt', 'r') as file:
+            least_time = str(file.read())
     else:
         least_time = 0
+
     while running:
         elapsed = time.time() - startTime
         passedTime = time.strftime("%H:%M:%S", time.gmtime(elapsed))
 
         if board.board == board.solvedBoard: #user has solved the board
             print('solved!')
-            status = 'Great! Youre cool!'
-            #if passedTime < least_time:
-                #least_time = passedTime
-                #with open('least_time.txt', 'w') as file:
-                    #file.write(str(least_time))
+            status = 'Great! Youre solved sudoku!'
+            ftr = [3600,60,1]
+            ltime = sum([a*b for a,b in zip(ftr, map(int,least_time.split(':')))])
+            ptime = sum([a*b for a,b in zip(ftr, map(int,passedTime.split(':')))])
+            
+            if(ptime < ltime):
+                with open('least_time.txt', 'w') as file:
+                    file.write(str(passedTime))
             
             pygame.display.flip()
             for i in range(9):
