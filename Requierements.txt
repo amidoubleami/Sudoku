@@ -1,0 +1,4 @@
+Requierements:
+numpy
+pygame
+dokusan

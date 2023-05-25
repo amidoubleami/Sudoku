@@ -18,7 +18,6 @@ def generate(level):
     while True:  #return will interrupt the loop
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                print('qqq')
                 exit()
         # puts one random number, then solves the board to generate a board
             rank = 0
@@ -29,7 +28,6 @@ def generate(level):
             if level == Level.HARD:
                 rank = 450
                 
-            print(rank)
             arr = np.array (list(str(generators.random_sudoku(avg_rank=rank))))
             board  = arr.reshape((9, 9))
             board = board.astype(int).tolist()
@@ -106,8 +104,8 @@ class Board:
 
 
         font = pygame.font.SysFont('Bahnschrift', 30)
-        text = font.render("Least Time Taken: {}".format(ltime), True, (0, 0, 0))
-        self.window.blit(text, (20, 542))
+        text = font.render("Least Time : {}".format(ltime), True, (128, 166, 255))
+        self.window.blit(text, (70, 542))
 
         font = pygame.font.SysFont('Bahnschrift', 30)
         text = font.render(status, True, (255, 0, 0))
@@ -118,7 +116,6 @@ class Board:
         '''Showcases how the board is solved via backtracking'''
         for event in pygame.event.get(): #so that touching anything doesn't freeze the screen
             if event.type == pygame.QUIT:
-                print('q')
                 exit()
 
         empty = find_empty(self.board)
@@ -206,7 +203,7 @@ def play(level):
     running = True
     startTime = time.time()
     least_time = ''
-    status = 'Youre doing good ;)'
+    status = 'Game is in process ;) '
     if os.path.exists('least_time.txt'):
         with open('least_time.txt', 'r') as file:
             least_time = str(file.read())
@@ -218,8 +215,7 @@ def play(level):
         passedTime = time.strftime("%H:%M:%S", time.gmtime(elapsed))
 
         if board.board == board.solvedBoard: #user has solved the board
-            print('solved!')
-            status = 'Great! Youre solved sudoku!'
+            status = 'Congratulations! You have solved sudoku!'
             ftr = [3600,60,1]
             ltime = sum([a*b for a,b in zip(ftr, map(int,least_time.split(':')))])
             ptime = sum([a*b for a,b in zip(ftr, map(int,passedTime.split(':')))])
@@ -236,7 +232,6 @@ def play(level):
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                print('exit')
                 exit() #so that it doesnt go to the outer run loop
 
             elif event.type == pygame.MOUSEBUTTONUP: #allow clicks only while the board hasn't been solved
@@ -282,12 +277,11 @@ def play(level):
                             del keyDict[selected]
 
                     elif event.key == pygame.K_RETURN:
-                        print('return')
                         if selected in keyDict:
                             if keyDict[selected] != board.solvedBoard[selected[1]][selected[0]]: #clear tile when incorrect value is inputted
                                 wrong += 1
                                 if wrong == 3:
-                                    status = 'Youre fooled!'
+                                    status = 'You lost this game !'
                                     running = False
                                 board.tiles[selected[1]][selected[0]].value = 0
                                 del keyDict[selected]
