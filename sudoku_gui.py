@@ -6,6 +6,7 @@ from dokusan import generators
 import pygame
 import time
 import random
+import os
 pygame.init()
 SCREEN = pygame.display.set_mode((1280, 720))
 pygame.display.set_caption("Menu")
@@ -57,7 +58,7 @@ class Board:
                 if self.tiles[i][j] != tile:
                     self.tiles[i][j].selected = False
 
-    def redraw(self, keys, wrong, time):
+    def redraw(self, keys, wrong, time,ltime):
         '''Redraws board with highlighted tiles'''
         self.window.fill((255,255,255))
         self.draw_board()
@@ -85,9 +86,13 @@ class Board:
             text = font.render(str(wrong), True, (0, 0, 0))
             self.window.blit(text, (32, 542))
 
-        font = pygame.font.SysFont('Bahnschrift', 40) #Time Display
+        font = pygame.font.SysFont('Bahnschrift', 30) #Time Display
         text = font.render(str(time), True, (0, 0, 0))
         self.window.blit(text, (388, 542))
+
+        font = pygame.font.SysFont('Bahnschrift', 30)
+        text = font.render("Least Time Taken: {}".format(ltime), True, (0, 0, 0))
+        self.window.blit(text, (20, 542))
         pygame.display.flip()
 
     def visualSolve(self, wrong, time):
@@ -180,11 +185,21 @@ def play():
     keyDict = {}
     running = True
     startTime = time.time()
+    least_time = 0
+    if os.path.exists('least_time.txt'):
+        with open('least_time', 'r') as file:
+            least_time = int(file.read())
+    else:
+        least_time = 0
     while running:
         elapsed = time.time() - startTime
         passedTime = time.strftime("%H:%M:%S", time.gmtime(elapsed))
-
         if board.board == board.solvedBoard: #user has solved the board
+            if passedTime < least_time:
+                least_time = passedTime
+                with open('least_time.txt', 'w') as file:
+                    file.write(str(least_time))
+            pygame.display.flip()
             for i in range(9):
                 for j in range(9):
                     board.tiles[i][j].selected = False
@@ -262,11 +277,12 @@ def play():
                             board.tiles[i][j].correct = False
                             board.tiles[i][j].incorrect = False #reset tiles
                     running = False
-        board.redraw(keyDict, wrong, passedTime)
+        board.redraw(keyDict, wrong, passedTime,least_time)
     while True: #another running loop so that the program ONLY closes when user closes program
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return
+
 def options():
     while True:
         OPTIONS_MOUSE_POS = pygame.mouse.get_pos()
@@ -301,16 +317,16 @@ def main_menu():
         MENU_TEXT = get_font(100).render("MAIN MENU", True, "white")
         MENU_RECT = MENU_TEXT.get_rect(center=(640, 100))
 
-        PLAY_BUTTON = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(640, 250), 
-                            text_input="PLAY", font=get_font(75), base_color="#d7fcd4", hovering_color="White")
-        OPTIONS_BUTTON = Button(image=pygame.image.load("assets/Options Rect.png"), pos=(640, 400), 
-                            text_input="OPTIONS", font=get_font(75), base_color="#d7fcd4", hovering_color="White")
-        QUIT_BUTTON = Button(image=pygame.image.load("assets/Quit Rect.png"), pos=(640, 550), 
-                            text_input="QUIT", font=get_font(75), base_color="#d7fcd4", hovering_color="White")
+        EASY_BUTTON = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(640, 250), 
+                            text_input="EASY", font=get_font(75), base_color="#d7fcd4", hovering_color="White")
+        MEDIUM_BUTTON = Button(image=pygame.image.load("assets/Options Rect.png"), pos=(640, 400), 
+                            text_input="MEDIUM", font=get_font(75), base_color="#d7fcd4", hovering_color="White")
+        HARD_BUTTON = Button(image=pygame.image.load("assets/Quit Rect.png"), pos=(640, 550), 
+                            text_input="HARD", font=get_font(75), base_color="#d7fcd4", hovering_color="White")
 
         SCREEN.blit(MENU_TEXT, MENU_RECT)
 
-        for button in [PLAY_BUTTON, OPTIONS_BUTTON, QUIT_BUTTON]:
+        for button in [EASY_BUTTON, MEDIUM_BUTTON, HARD_BUTTON]:
             button.changeColor(MENU_MOUSE_POS)
             button.update(SCREEN)
         
@@ -318,12 +334,12 @@ def main_menu():
             if event.type == pygame.QUIT:
                 pygame.quit()
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if PLAY_BUTTON.checkForInput(MENU_MOUSE_POS):
+                if EASY_BUTTON.checkForInput(MENU_MOUSE_POS):
                     play()
-                if OPTIONS_BUTTON.checkForInput(MENU_MOUSE_POS):
-                    options()
-                if QUIT_BUTTON.checkForInput(MENU_MOUSE_POS):
-                    pygame.quit()
+                if MEDIUM_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    play()
+                if HARD_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    play()
 
         pygame.display.update()
 
